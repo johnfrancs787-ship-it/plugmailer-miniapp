@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1120">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111326">
   <title>PlugMailer</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -11,436 +11,660 @@
   <style>
     :root {
       color-scheme: dark;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0b1120;
-      color: #f3f4f6;
-      --panel: #151e30;
-      --border: #273449;
-      --muted: #a6b1c2;
-      --accent: #48a9ff;
+      --bg: #101120;
+      --panel: #191a30;
+      --panel-2: #20223b;
+      --text: #f7f7ff;
+      --muted: #a8abc5;
+      --purple: #9b7bff;
+      --pink: #ff65b5;
+      --cyan: #5fe1e8;
+      --green: #5ee2a0;
+      --yellow: #ffd166;
+      --red: #ff6b7c;
+      --border: rgba(255,255,255,.09);
+      --radius: 18px;
     }
 
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
-      padding: 20px 16px 36px;
-      background: #0b1120;
+      min-height: 100vh;
+      padding: 18px 16px calc(92px + env(safe-area-inset-bottom));
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(155,123,255,.20), transparent 35%),
+        radial-gradient(ellipse at 100% 20%, rgba(255,101,181,.12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font: 15px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    main {
-      width: min(100%, 720px);
-      margin: 0 auto;
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    .app { max-width: 760px; margin: 0 auto; }
+
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; margin-bottom: 20px;
     }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-icon {
+      display: grid; place-items: center; width: 44px; height: 44px;
+      border-radius: 15px; background: linear-gradient(135deg,var(--purple),var(--pink));
+      font-size: 23px; box-shadow: 0 8px 28px rgba(155,123,255,.25);
+    }
+    .brand h1 { font-size: 19px; margin: 0; letter-spacing: .2px; }
+    .brand p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .live-pill {
+      display: flex; align-items: center; gap: 7px; padding: 7px 10px;
+      border: 1px solid var(--border); background: rgba(255,255,255,.04);
+      border-radius: 999px; color: var(--muted); font-size: 11px;
+    }
+    .dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; }
 
-    h1 { margin: 0 0 6px; font-size: 26px; }
-    h2 { margin: 0 0 14px; font-size: 19px; }
-    p { color: var(--muted); line-height: 1.5; }
-
-    section {
-      margin-top: 18px;
-      padding: 18px;
+    .welcome {
+      padding: 20px; border-radius: 22px; margin-bottom: 16px;
+      background: linear-gradient(120deg,rgba(155,123,255,.25),rgba(255,101,181,.12)),var(--panel);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--panel);
+    }
+    .welcome h2 { margin: 0 0 5px; font-size: 21px; }
+    .welcome p { color: var(--muted); margin: 0; font-size: 13px; }
+
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin: 22px 2px 11px;
+    }
+    .section-head h2 { font-size: 16px; margin: 0; }
+    .small-button {
+      border: 1px solid var(--border); background: rgba(255,255,255,.05);
+      color: var(--muted); border-radius: 10px; padding: 7px 10px; cursor: pointer;
+      font-size: 12px;
     }
 
     .stats {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px;
     }
-
-    .stat, .item {
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
+    .stat {
+      min-height: 105px; padding: 14px; border: 1px solid var(--border);
+      border-radius: var(--radius); background: var(--panel);
     }
+    .stat-top { display: flex; justify-content: space-between; align-items: center; }
+    .stat-icon { font-size: 19px; }
+    .stat-value { font-size: 25px; font-weight: 750; margin-top: 9px; }
+    .stat-label { color: var(--muted); font-size: 12px; }
+    .accent-purple { color: var(--purple); }
+    .accent-cyan { color: var(--cyan); }
+    .accent-yellow { color: var(--yellow); }
+    .accent-red { color: var(--red); }
+    .accent-green { color: var(--green); }
 
-    .stat span {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--muted);
-      font-size: 13px;
+    .nav-grid {
+      display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px;
     }
-
-    .stat strong { font-size: 21px; }
-
-    label {
-      display: block;
-      margin: 12px 0 6px;
-      color: var(--muted);
-      font-size: 14px;
+    .nav-card {
+      min-height: 83px; padding: 12px 8px; border: 1px solid var(--border);
+      border-radius: 16px; background: var(--panel); text-align: center;
+      cursor: pointer; transition: transform .15s, border-color .15s;
     }
+    .nav-card:active { transform: scale(.97); }
+    .nav-card:hover { border-color: rgba(155,123,255,.55); }
+    .nav-card .emoji { display: block; font-size: 23px; margin-bottom: 5px; }
+    .nav-card span:last-child { font-size: 11px; color: #e8e8f5; }
 
-    input, textarea, button {
-      width: 100%;
-      border-radius: 9px;
-      font: inherit;
+    .panel {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 15px; margin-bottom: 12px;
     }
-
-    input, textarea {
-      padding: 11px 12px;
-      border: 1px solid var(--border);
-      outline: none;
-      background: #0b1120;
-      color: #f3f4f6;
+    .event-list { display: grid; gap: 9px; }
+    .event {
+      display: grid; grid-template-columns: 30px 1fr; gap: 9px;
+      align-items: start; padding: 10px; border-radius: 13px;
+      background: rgba(255,255,255,.035);
     }
-
-    textarea { min-height: 120px; resize: vertical; }
-
-    button {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border: 0;
-      background: var(--accent);
-      color: #06111d;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    button.secondary {
-      border: 1px solid var(--border);
-      background: transparent;
-      color: #f3f4f6;
-    }
-
-    button:disabled { opacity: .6; cursor: wait; }
-
-    .message {
-      display: none;
-      margin-top: 14px;
-      padding: 11px 12px;
-      border-radius: 9px;
-      background: #1d2a3e;
+    .event-icon { font-size: 17px; }
+    .event-title { font-size: 12px; }
+    .event-meta { color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 18px 8px; }
+    .error {
+      display: none; padding: 12px; margin: 12px 0; border-radius: 13px;
+      color: #ffd9de; background: rgba(255,107,124,.13);
+      border: 1px solid rgba(255,107,124,.35); font-size: 12px;
       overflow-wrap: anywhere;
     }
+    .success {
+      display: none; padding: 12px; margin: 12px 0; border-radius: 13px;
+      color: #d1ffeb; background: rgba(94,226,160,.12);
+      border: 1px solid rgba(94,226,160,.3); font-size: 12px;
+    }
 
-    .message.error { color: #ffc1c1; }
-    .message.success { color: #b8f5cc; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .back-row { display:flex; align-items:center; gap:10px; margin: 5px 0 15px; }
+    .back-row h2 { margin:0; font-size:20px; }
+    .back {
+      width: 36px; height: 36px; border: 1px solid var(--border);
+      background: var(--panel); border-radius: 12px; cursor: pointer;
+    }
 
+    .form { display: grid; gap: 11px; }
+    .field label { display:block; color:var(--muted); font-size:12px; margin:0 0 6px 2px; }
+    .field input, .field select, .field textarea {
+      width:100%; color:var(--text); background:#111223; border:1px solid var(--border);
+      border-radius:12px; padding:12px; outline:none;
+    }
+    .field textarea { resize:vertical; min-height:100px; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--purple); }
+    .primary {
+      width:100%; border:0; border-radius:13px; padding:13px 15px;
+      color:#fff; font-weight:700; cursor:pointer;
+      background:linear-gradient(100deg,#8d6bff,#df59c4);
+    }
+    .primary:disabled { opacity:.55; cursor:wait; }
+    .secondary {
+      border:1px solid var(--border); background:rgba(255,255,255,.05);
+      padding:11px 13px; border-radius:12px; cursor:pointer;
+    }
     .item {
-      margin-top: 10px;
-      overflow-wrap: anywhere;
+      border:1px solid var(--border); background:var(--panel-2);
+      border-radius:14px; padding:12px; margin-bottom:9px;
     }
+    .item-title { font-weight:650; font-size:13px; }
+    .item-meta { color:var(--muted); font-size:11px; margin-top:4px; overflow-wrap:anywhere; }
+    .item-actions { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+    .tag { display:inline-block; padding:4px 8px; border-radius:999px; font-size:10px; background:rgba(155,123,255,.15); color:#c9baff; }
+    .hint { color:var(--muted); font-size:12px; margin:0 0 12px; }
 
-    .muted { color: var(--muted); font-size: 13px; }
+    .bottom-nav {
+      position:fixed; z-index:5; left:50%; transform:translateX(-50%);
+      bottom:calc(10px + env(safe-area-inset-bottom)); width:min(728px,calc(100% - 24px));
+      display:grid; grid-template-columns:repeat(4,1fr); gap:5px; padding:7px;
+      background:rgba(25,26,48,.94); border:1px solid var(--border);
+      border-radius:18px; backdrop-filter:blur(14px);
+    }
+    .bottom-nav button {
+      border:0; background:transparent; color:var(--muted);
+      border-radius:12px; padding:7px 3px; font-size:10px; cursor:pointer;
+    }
+    .bottom-nav button.active { background:rgba(155,123,255,.18); color:#e7dcff; }
+    .bottom-nav span { display:block; font-size:18px; margin-bottom:2px; }
+
+    @media (min-width:600px) {
+      body { padding-top:26px; }
+      .stats { grid-template-columns:repeat(5,minmax(0,1fr)); }
+      .stat { min-height:115px; }
+      .nav-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+    }
   </style>
 </head>
 
 <body>
-<main>
-  <header>
-    <h1>PlugMailer</h1>
-    <p>Consultez vos campagnes et gérez vos comptes SMTP.</p>
-  </header>
-
-  <div id="message" class="message" role="status" aria-live="polite"></div>
-
-  <section>
-    <h2>Tableau de bord</h2>
-    <div class="stats">
-      <div class="stat">
-        <span>E-mails envoyés</span>
-        <strong id="sent-count">—</strong>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">✉️</div>
+        <div>
+          <h1>PlugMailer</h1>
+          <p>Ton espace mailing</p>
+        </div>
       </div>
-      <div class="stat">
-        <span>E-mails en attente</span>
-        <strong id="pending-count">—</strong>
+      <div class="live-pill"><span class="dot"></span><span id="connectionLabel">Connexion…</span></div>
+    </header>
+
+    <div id="globalError" class="error"></div>
+    <div id="globalSuccess" class="success"></div>
+
+    <section id="dashboardView" class="view active">
+      <div class="welcome">
+        <h2>Salut <span id="userName">👋</span></h2>
+        <p>Voici l’activité de ton espace, actualisée automatiquement.</p>
       </div>
-      <div class="stat">
-        <span>Échecs</span>
-        <strong id="failed-count">—</strong>
+
+      <div class="section-head">
+        <h2>📊 Tableau de bord</h2>
+        <button class="small-button" onclick="loadDashboard()">↻ Actualiser</button>
       </div>
-      <div class="stat">
-        <span>Campagnes actives</span>
-        <strong id="active-count">—</strong>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-top"><span class="stat-label">Campagnes en cours</span><span class="stat-icon">🚀</span></div><div class="stat-value accent-purple" id="statCampaigns">—</div></div>
+        <div class="stat"><div class="stat-top"><span class="stat-label">Emails envoyés</span><span class="stat-icon">📨</span></div><div class="stat-value accent-cyan" id="statSent">—</div></div>
+        <div class="stat"><div class="stat-top"><span class="stat-label">En attente</span><span class="stat-icon">⏳</span></div><div class="stat-value accent-yellow" id="statPending">—</div></div>
+        <div class="stat"><div class="stat-top"><span class="stat-label">Échecs</span><span class="stat-icon">⚠️</span></div><div class="stat-value accent-red" id="statFailed">—</div></div>
+        <div class="stat"><div class="stat-top"><span class="stat-label">SMTP configurés</span><span class="stat-icon">📡</span></div><div class="stat-value accent-green" id="statSmtp">—</div></div>
       </div>
-    </div>
-    <button id="refresh-button" class="secondary" type="button">
-      Actualiser
-    </button>
-  </section>
 
-  <section>
-    <h2>Mes SMTP</h2>
-    <div id="smtp-list"><p class="muted">Chargement…</p></div>
-    <button id="smtp-refresh-button" class="secondary" type="button">
-      Actualiser les SMTP
-    </button>
-  </section>
+      <div class="section-head"><h2>🧩 Tes services</h2></div>
+      <div class="nav-grid">
+        <button class="nav-card" data-view="campaigns"><span class="emoji">🚀</span><span>Campagnes</span></button>
+        <button class="nav-card" data-view="smtp"><span class="emoji">📡</span><span>SMTP</span></button>
+        <button class="nav-card" data-view="sheets"><span class="emoji">📋</span><span>Fiches</span></button>
+        <button class="nav-card" data-view="inbox"><span class="emoji">📥</span><span>Test inbox</span></button>
+        <button class="nav-card" data-view="recharge"><span class="emoji">🪙</span><span>Recharge crypto</span></button>
+        <button class="nav-card" data-view="history"><span class="emoji">🕘</span><span>Historique</span></button>
+        <button class="nav-card" data-view="support"><span class="emoji">🆘</span><span>Support</span></button>
+        <button class="nav-card" data-view="telegram"><span class="emoji">✈️</span><span>Telegram</span></button>
+      </div>
 
-  <section>
-    <h2>Créer une campagne</h2>
+      <div class="section-head"><h2>⚡ Événements & logs</h2><button class="small-button" onclick="loadEvents()">↻</button></div>
+      <div class="panel"><div id="eventList" class="event-list"><div class="empty">Chargement des événements…</div></div></div>
+    </section>
 
-    <form id="campaign-form">
-      <label for="campaign-title">Nom de la campagne</label>
-      <input id="campaign-title" required maxlength="200"
-             placeholder="Ex. Newsletter novembre">
+    <section id="campaignsView" class="view">
+      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>🚀 Campagnes</h2></div>
+      <p class="hint">Crée une campagne puis consulte son état et sa progression.</p>
+      <div class="panel">
+        <form id="campaignForm" class="form">
+          <div class="field"><label for="campaignName">Nom de la campagne</label><input id="campaignName" required placeholder="Ex. Newsletter de juin"></div>
+          <div class="field"><label for="recipients">Destinataires — un email par ligne</label><textarea id="recipients" required placeholder="client1@example.com&#10;client2@example.com"></textarea></div>
+          <div class="field"><label for="subject">Objet</label><input id="subject" required placeholder="Objet du message"></div>
+          <div class="field"><label for="body">Message HTML ou texte</label><textarea id="body" required placeholder="Écris le contenu de ton email…"></textarea></div>
+          <button class="primary" type="submit">✨ Créer la campagne</button>
+        </form>
+      </div>
+      <div class="section-head"><h2>📃 Tes campagnes</h2><button class="small-button" onclick="loadCampaigns()">↻</button></div>
+      <div id="campaignList"></div>
+    </section>
 
-      <label for="sender-name">Nom de l’expéditeur</label>
-      <input id="sender-name" required maxlength="200"
-             placeholder="Ex. Mon entreprise">
+    <section id="smtpView" class="view">
+      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>📡 Comptes SMTP</h2></div>
+      <p class="hint">Ajoute et vérifie tes comptes d’envoi. Ne partage jamais tes mots de passe SMTP.</p>
+      <div class="panel">
+        <form id="smtpForm" class="form">
+          <div class="field"><label for="smtpName">Nom du compte</label><input id="smtpName" placeholder="SMTP principal"></div>
+          <div class="field"><label for="smtpHost">Serveur SMTP</label><input id="smtpHost" required placeholder="mail.exemple.com"></div>
+          <div class="field"><label for="smtpPort">Port</label><input id="smtpPort" required type="number" placeholder="465"></div>
+          <div class="field"><label for="smtpEmail">Adresse / identifiant</label><input id="smtpEmail" required type="email" placeholder="toi@exemple.com"></div>
+          <div class="field"><label for="smtpPassword">Mot de passe</label><input id="smtpPassword" required type="password" autocomplete="new-password"></div>
+          <div class="field"><label for="smtpEncryption">Chiffrement</label><select id="smtpEncryption"><option value="ssl">SSL/TLS</option><option value="starttls">STARTTLS</option><option value="none">Aucun</option></select></div>
+          <button class="primary" type="submit">➕ Ajouter et vérifier</button>
+        </form>
+      </div>
+      <div class="section-head"><h2>🔐 Comptes configurés</h2><button class="small-button" onclick="loadSmtp()">↻</button></div>
+      <div id="smtpList"></div>
+    </section>
 
-      <label for="campaign-subject">Objet de l’e-mail</label>
-      <input id="campaign-subject" required maxlength="998"
-             placeholder="Ex. Les nouveautés de cette semaine">
+    <section id="sheetsView" class="view">
+      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>📋 Fiches</h2></div>
+      <p class="hint">Gère tes fiches ou listes de destinataires. La fonctionnalité dépend des routes disponibles dans ton backend.</p>
+      <div class="panel">
+        <form id="sheetForm" class="form">
+          <div class="field"><label for="sheetName">Nom de la fiche</label><input id="sheetName" required placeholder="Clients juin"></div>
+          <div class="field"><label for="sheetEmails">Adresses email — une par ligne</label><textarea id="sheetEmails" required placeholder="client@example.com"></textarea></div>
+          <button class="primary" type="submit">💾 Enregistrer la fiche</button>
+        </form>
+      </div>
+      <div id="sheetList"></div>
+    </section>
 
-      <label for="campaign-content">Message</label>
-      <textarea id="campaign-content" required maxlength="1000000"
-                placeholder="Écrivez votre message ici."></textarea>
+    <section id="inboxView" class="view">
+      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>📥 Test inbox</h2></div>
+      <p class="hint">Envoie un email de test à ta propre adresse pour vérifier la configuration SMTP.</p>
+      <div class="panel">
+        <form id="inboxForm" class="form">
+          <div class="field"><label for="testSmtp">Compte SMTP</label><select id="testSmtp" required><option value="">Chargement des comptes…</option></select></div>
+          <div class="field"><label for="testEmail">Adresse de réception</label><input id="testEmail" type="email" required placeholder="toi@exemple.com"></div>
+          <button class="primary" type="submit">📨 Envoyer un email test</button>
+        </form>
+      </div>
+    </section>
 
-      <label>
-        <input id="is-html" type="checkbox" style="width:auto">
-        Le contenu du message est au format HTML
-      </label>
+    <section id="rechargeView" class="view">
+      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>🪙 Recharge crypto</h2></div>
+      <div class="panel">
+        <p class="hint">Consulte ici les moyens de recharge proposés par l’administrateur.</p>
+        <div id="rechargeContent" class="empty">Chargement des options de recharge…</div>
+      </div>
+    </section>
 
-      <label for="campaign-recipients">
-        Destinataires — une adresse e-mail par ligne
-      </label>
-      <textarea id="campaign-recipients" required
-                placeholder="client1@example.com&#10;client2@example.com"></textarea>
+    <section id="historyView" class="view">
+      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>🕘 Historique</h2></div>
+      <div class="section-head"><h2>Envois récents</h2><button class="small-button" onclick="loadHistory()">↻</button></div>
+      <div id="historyList"></div>
+    </section>
 
-      <button id="campaign-submit" type="submit">
-        Créer la campagne
-      </button>
-    </form>
-  </section>
-</main>
+    <section id="supportView" class="view">
+      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>🆘 Support</h2></div>
+      <div class="panel">
+        <p>Besoin d’aide avec la configuration ou une campagne ? Contacte le support.</p>
+        <a id="supportLink" class="primary" style="display:block;text-align:center;text-decoration:none" href="#" target="_blank" rel="noopener">💬 Contacter le support</a>
+      </div>
+    </section>
 
-<script>
-  // Remplace cette valeur par l’URL HTTPS exacte du service FastAPI sur Render.
-  const API_URL = "https://plug-mailer-bot-uipj.onrender.com".replace(/\/+$/, "");
+    <section id="telegramView" class="view">
+      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>✈️ Telegram</h2></div>
+      <div class="panel">
+        <p>Ouvre le bot Telegram pour accéder aux commandes et notifications.</p>
+        <a id="telegramLink" class="primary" style="display:block;text-align:center;text-decoration:none" href="#" target="_blank" rel="noopener">🤖 Ouvrir le bot</a>
+      </div>
+    </section>
+  </main>
 
-  const telegramApp = window.Telegram?.WebApp;
-  const messageBox = document.getElementById("message");
+  <nav class="bottom-nav">
+    <button class="active" data-view="dashboard"><span>📊</span>Accueil</button>
+    <button data-view="campaigns"><span>🚀</span>Campagnes</button>
+    <button data-view="smtp"><span>📡</span>SMTP</button>
+    <button data-view="history"><span>🕘</span>Historique</button>
+  </nav>
 
-  if (telegramApp) {
-    telegramApp.ready();
-    telegramApp.expand();
-  }
+  <script>
+    /*
+      Configuration à remplacer avant publication.
+      API_URL doit être l’URL publique du service Render qui exécute FastAPI.
+      N’ajoute ni /docs ni /api à la fin, sauf si ton backend l’exige.
+    */
+    const API_URL = "https://plug-mailer-bot-uipj.onrender.com";
+    const SUPPORT_URL = "https://t.me/no_flex75";
+    const TELEGRAM_BOT_URL = "https://t.me/Plugmailer_bot";
 
-  function showMessage(text, type = "success") {
-    messageBox.textContent = text;
-    messageBox.className = `message ${type}`;
-    messageBox.style.display = "block";
-  }
+    /*
+      Vérifie les routes ci-dessous dans main.py.
+      Elles doivent correspondre exactement aux endpoints FastAPI déployés.
+    */
+    const API = {
+      dashboard: "/api/dashboard",
+      events: "/api/events",
+      smtp: "/api/smtp",
+      smtpCheck: id => `/api/smtp/${encodeURIComponent(id)}/check`,
+      smtpDelete: id => `/api/smtp/${encodeURIComponent(id)}`,
+      campaigns: "/api/campaigns",
+      campaignCancel: id => `/api/campaigns/${encodeURIComponent(id)}/cancel`,
+      history: "/api/history",
+      inboxTest: "/api/test-inbox",
+      sheets: "/api/sheets",
+      recharge: "/api/recharge"
+    };
 
-  async function api(path, options = {}) {
-    if (!telegramApp?.initData) {
-      throw new Error("Ouvrez cette Mini App depuis Telegram.");
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand();
+
+    const initData = tg?.initData || "";
+    const user = tg?.initDataUnsafe?.user;
+    document.getElementById("userName").textContent =
+      user?.first_name ? `${user.first_name} 👋` : "👋";
+    document.getElementById("supportLink").href = SUPPORT_URL;
+    document.getElementById("telegramLink").href = TELEGRAM_BOT_URL;
+
+    const $ = id => document.getElementById(id);
+    const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+    }[char]));
+
+    function showMessage(message, type = "error") {
+      const box = type === "success" ? $("globalSuccess") : $("globalError");
+      const other = type === "success" ? $("globalError") : $("globalSuccess");
+      other.style.display = "none";
+      box.textContent = message;
+      box.style.display = "block";
+      setTimeout(() => box.style.display = "none", 6000);
     }
 
-    const headers = new Headers(options.headers || {});
-    headers.set("Authorization", `tma ${telegramApp.initData}`);
+    function showView(name) {
+      document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
+      const target = $(name + "View");
+      if (target) target.classList.add("active");
 
-    if (options.body !== undefined && !headers.has("Content-Type")) {
-      headers.set("Content-Type", "application/json");
-    }
-
-    let response;
-
-    try {
-      response = await fetch(`${API_URL}${path}`, {
-        ...options,
-        headers
-      });
-    } catch {
-      throw new Error(
-        "Impossible de joindre le backend. Vérifiez son URL et son état sur Render."
+      document.querySelectorAll("[data-view]").forEach(button =>
+        button.classList.toggle("active", button.dataset.view === name)
       );
+
+      if (name === "dashboard") { loadDashboard(); loadEvents(); }
+      if (name === "campaigns") loadCampaigns();
+      if (name === "smtp") loadSmtp();
+      if (name === "history") loadHistory();
+      if (name === "sheets") loadSheets();
+      if (name === "recharge") loadRecharge();
     }
 
-    const contentType = response.headers.get("content-type") || "";
-    const data = contentType.includes("application/json")
-      ? await response.json()
-      : await response.text();
-
-    if (!response.ok) {
-      const detail = data && typeof data === "object"
-        ? data.detail || data.message
-        : data;
-
-      throw new Error(detail || `Erreur API (${response.status})`);
-    }
-
-    return data;
-  }
-
-  async function loadDashboard() {
-    const data = await api("/api/dashboard");
-    const stats = data.stats || {};
-
-    document.getElementById("sent-count").textContent = stats.sent ?? 0;
-    document.getElementById("pending-count").textContent = stats.pending ?? 0;
-    document.getElementById("failed-count").textContent = stats.failed ?? 0;
-
-    const activeCampaigns = data.active_campaigns || [];
-    document.getElementById("active-count").textContent =
-      Array.isArray(activeCampaigns) ? activeCampaigns.length : 0;
-  }
-
-  async function checkSmtp(id) {
-    return api(`/api/smtps/${encodeURIComponent(id)}/check`, {
-      method: "POST"
-    });
-  }
-
-  async function loadSmtps() {
-    const data = await api("/api/smtps");
-    const list = document.getElementById("smtp-list");
-    const smtps = Array.isArray(data.smtps) ? data.smtps : [];
-
-    list.replaceChildren();
-
-    if (smtps.length === 0) {
-      const empty = document.createElement("p");
-      empty.className = "muted";
-      empty.textContent = "Aucun compte SMTP actif.";
-      list.append(empty);
-      return;
-    }
-
-    for (const smtp of smtps) {
-      const item = document.createElement("div");
-      item.className = "item";
-
-      const title = document.createElement("strong");
-      title.textContent = smtp.email || smtp.username || `SMTP ${smtp.id}`;
-      item.append(title);
-
-      const details = document.createElement("p");
-      details.className = "muted";
-      details.textContent = [
-        smtp.host,
-        smtp.port ? `port ${smtp.port}` : "",
-        smtp.encryption || "",
-        smtp.last_check_ok === true
-          ? "Vérifié"
-          : smtp.last_check_ok === false
-            ? "Dernier test échoué"
-            : "Non vérifié"
-      ].filter(Boolean).join(" · ");
-      item.append(details);
-
-      const checkButton = document.createElement("button");
-      checkButton.type = "button";
-      checkButton.className = "secondary";
-      checkButton.textContent = "Vérifier le SMTP";
-
-      checkButton.addEventListener("click", async () => {
-        checkButton.disabled = true;
-
-        try {
-          const result = await checkSmtp(smtp.id);
-          if (result.valid) {
-            showMessage("Le SMTP fonctionne.", "success");
-          } else {
-            showMessage(
-              result.error || "La vérification du SMTP a échoué.",
-              "error"
-            );
-          }
-          await loadSmtps();
-        } catch (error) {
-          showMessage(error.message, "error");
-        } finally {
-          checkButton.disabled = false;
-        }
-      });
-
-      item.append(checkButton);
-      list.append(item);
-    }
-  }
-
-  async function createCampaign(payload) {
-    return api("/api/campaigns", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-  }
-
-  async function loadCampaignEvents(campaignId, lastEventId = 0) {
-    const id = encodeURIComponent(campaignId);
-    const afterId = encodeURIComponent(lastEventId);
-    return api(`/api/campaigns/${id}/events?after_id=${afterId}`);
-  }
-
-  async function refreshPage() {
-    try {
-      await Promise.all([loadDashboard(), loadSmtps()]);
-      showMessage("Données actualisées.", "success");
-    } catch (error) {
-      showMessage(error.message, "error");
-    }
-  }
-
-  document.getElementById("refresh-button")
-    .addEventListener("click", refreshPage);
-
-  document.getElementById("smtp-refresh-button")
-    .addEventListener("click", async () => {
-      try {
-        await loadSmtps();
-        showMessage("Liste SMTP actualisée.", "success");
-      } catch (error) {
-        showMessage(error.message, "error");
-      }
-    });
-
-  document.getElementById("campaign-form")
-    .addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const submitButton = document.getElementById("campaign-submit");
-      const recipients = document
-        .getElementById("campaign-recipients")
-        .value
-        .split(/\r?\n/)
-        .map(address => address.trim())
-        .filter(Boolean);
-
-      const payload = {
-        title: document.getElementById("campaign-title").value.trim(),
-        sender_name: document.getElementById("sender-name").value.trim(),
-        subject: document.getElementById("campaign-subject").value.trim(),
-        content: document.getElementById("campaign-content").value,
-        is_html: document.getElementById("is-html").checked,
-        recipients
-      };
-
-      if (recipients.length === 0) {
-        showMessage("Ajoutez au moins une adresse e-mail.", "error");
-        return;
-      }
-
-      submitButton.disabled = true;
-
-      try {
-        const result = await createCampaign(payload);
-        const campaign = result.campaign || {};
-        showMessage(
-          `Campagne créée${campaign.id ? ` (n° ${campaign.id})` : ""}.`,
-          "success"
-        );
-        event.currentTarget.reset();
-        await loadDashboard();
-      } catch (error) {
-        showMessage(error.message, "error");
-      } finally {
-        submitButton.disabled = false;
-      }
-    });
-
-  if (telegramApp?.initData) {
-    refreshPage();
-  } else {
-    showMessage(
-      "Ouvrez la Mini App depuis le bouton du bot Telegram.",
-      "error"
+    document.querySelectorAll("[data-view]").forEach(button =>
+      button.addEventListener("click", () => showView(button.dataset.view))
     );
-  }
-</script>
+
+    async function api(path, options = {}) {
+      if (!API_URL || API_URL.includes("REMPLACE-PAR")) {
+        throw new Error("Configure API_URL avec l’URL publique de ton backend FastAPI.");
+      }
+      const headers = { ...(options.headers || {}) };
+      if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
+      if (initData) headers["tma"] = initData;
+
+      const response = await fetch(API_URL.replace(/\/$/, "") + path, {
+        ...options, headers
+      });
+      const raw = await response.text();
+      let data = {};
+      try { data = raw ? JSON.parse(raw) : {}; } catch { data = { detail: raw }; }
+
+      if (!response.ok) {
+        throw new Error(data.detail || data.message || `Erreur API ${response.status}`);
+      }
+      return data;
+    }
+
+    function pick(obj, keys, fallback = 0) {
+      for (const key of keys) if (obj?.[key] !== undefined && obj[key] !== null) return obj[key];
+      return fallback;
+    }
+
+    async function loadDashboard() {
+      try {
+        const data = await api(API.dashboard);
+        $("connectionLabel").textContent = "En ligne";
+        $("statCampaigns").textContent = pick(data, ["campaigns_running", "active_campaigns", "campaigns_in_progress"]);
+        $("statSent").textContent = pick(data, ["emails_sent", "sent", "total_sent"]);
+        $("statPending").textContent = pick(data, ["emails_pending", "pending", "total_pending"]);
+        $("statFailed").textContent = pick(data, ["emails_failed", "failed", "total_failed"]);
+        $("statSmtp").textContent = pick(data, ["smtp_count", "smtp_configured", "total_smtp"]);
+      } catch (error) {
+        $("connectionLabel").textContent = "Hors ligne";
+        ["statCampaigns","statSent","statPending","statFailed","statSmtp"].forEach(id => $(id).textContent = "—");
+        $("eventList").innerHTML = `<div class="empty">Impossible de charger le tableau de bord.<br>${esc(error.message)}</div>`;
+      }
+    }
+
+    async function loadEvents() {
+      try {
+        const data = await api(API.events);
+        const events = Array.isArray(data) ? data : (data.events || data.items || []);
+        if (!events.length) {
+          $("eventList").innerHTML = '<div class="empty">Aucun événement récent.</div>';
+          return;
+        }
+        $("eventList").innerHTML = events.slice(0, 15).map(event => `
+          <div class="event">
+            <div class="event-icon">⚡</div>
+            <div><div class="event-title">${esc(event.message || event.description || event.event || "Événement")}</div>
+            <div class="event-meta">${esc(event.created_at || event.timestamp || event.date || "")}</div></div>
+          </div>`).join("");
+      } catch (error) {
+        $("eventList").innerHTML = `<div class="empty">Logs indisponibles : ${esc(error.message)}</div>`;
+      }
+    }
+
+    async function loadCampaigns() {
+      $("campaignList").innerHTML = '<div class="empty">Chargement…</div>';
+      try {
+        const data = await api(API.campaigns);
+        const items = Array.isArray(data) ? data : (data.campaigns || data.items || []);
+        $("campaignList").innerHTML = items.length ? items.map(item => `
+          <div class="item">
+            <div class="item-title">🚀 ${esc(item.name || item.subject || "Campagne")}</div>
+            <div class="item-meta">État : ${esc(item.status || "—")} · Envoyés : ${esc(item.sent ?? 0)} · En attente : ${esc(item.pending ?? 0)} · Échecs : ${esc(item.failed ?? 0)}</div>
+            ${item.id ? `<div class="item-actions"><button class="secondary" onclick="cancelCampaign('${esc(item.id)}')">⏹ Annuler</button></div>` : ""}
+          </div>`).join("") : '<div class="empty">Aucune campagne pour le moment.</div>';
+      } catch (error) {
+        $("campaignList").innerHTML = `<div class="empty">Impossible de charger les campagnes : ${esc(error.message)}</div>`;
+      }
+    }
+
+    $("campaignForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = event.submitter;
+      button.disabled = true;
+      try {
+        const recipients = $("recipients").value.split(/\n|,|;/).map(x => x.trim()).filter(Boolean);
+        const result = await api(API.campaigns, {
+          method: "POST",
+          body: JSON.stringify({
+            name: $("campaignName").value.trim(),
+            subject: $("subject").value.trim(),
+            body: $("body").value,
+            recipients
+          })
+        });
+        showMessage("Campagne créée.", "success");
+        $("campaignForm").reset();
+        loadCampaigns(); loadDashboard(); loadEvents();
+      } catch (error) { showMessage(error.message); }
+      finally { button.disabled = false; }
+    });
+
+    async function cancelCampaign(id) {
+      try {
+        await api(API.campaignCancel(id), { method: "POST" });
+        showMessage("Demande d’annulation envoyée.", "success");
+        loadCampaigns(); loadDashboard(); loadEvents();
+      } catch (error) { showMessage(error.message); }
+    }
+
+    async function loadSmtp() {
+      $("smtpList").innerHTML = '<div class="empty">Chargement…</div>';
+      try {
+        const data = await api(API.smtp);
+        const items = Array.isArray(data) ? data : (data.smtp_accounts || data.accounts || data.items || []);
+        $("smtpList").innerHTML = items.length ? items.map(item => `
+          <div class="item">
+            <div class="item-title">📡 ${esc(item.name || item.email || item.username || "Compte SMTP")}</div>
+            <div class="item-meta">${esc(item.host || "")}${item.port ? ":" + esc(item.port) : ""} · ${esc(item.status || (item.active ? "Actif" : "Configuré"))}</div>
+            <div class="item-actions">
+              ${item.id ? `<button class="secondary" onclick="checkSmtp('${esc(item.id)}')">🧪 Vérifier</button><button class="secondary" onclick="deleteSmtp('${esc(item.id)}')">🗑 Supprimer</button>` : ""}
+            </div>
+          </div>`).join("") : '<div class="empty">Aucun compte SMTP configuré.</div>';
+
+        const select = $("testSmtp");
+        select.innerHTML = '<option value="">Choisir un compte SMTP</option>' +
+          items.map(item => `<option value="${esc(item.id)}">${esc(item.email || item.username || item.name || item.host)}</option>`).join("");
+      } catch (error) {
+        $("smtpList").innerHTML = `<div class="empty">Impossible de charger les SMTP : ${esc(error.message)}</div>`;
+        $("testSmtp").innerHTML = '<option value="">Liste indisponible</option>';
+      }
+    }
+
+    $("smtpForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = event.submitter; button.disabled = true;
+      try {
+        await api(API.smtp, {
+          method: "POST",
+          body: JSON.stringify({
+            name: $("smtpName").value.trim(),
+            host: $("smtpHost").value.trim(),
+            port: Number($("smtpPort").value),
+            username: $("smtpEmail").value.trim(),
+            email: $("smtpEmail").value.trim(),
+            password: $("smtpPassword").value,
+            encryption: $("smtpEncryption").value
+          })
+        });
+        showMessage("Compte SMTP ajouté. Le backend a accepté la requête.", "success");
+        $("smtpForm").reset(); loadSmtp(); loadDashboard();
+      } catch (error) { showMessage(error.message); }
+      finally { button.disabled = false; }
+    });
+
+    async function checkSmtp(id) {
+      try {
+        const result = await api(API.smtpCheck(id), { method: "POST" });
+        showMessage(result.message || "Vérification terminée.", "success");
+        loadSmtp();
+      } catch (error) { showMessage(error.message); }
+    }
+
+    async function deleteSmtp(id) {
+      if (!confirm("Supprimer ce compte SMTP ?")) return;
+      try {
+        await api(API.smtpDelete(id), { method: "DELETE" });
+        showMessage("Compte SMTP supprimé.", "success");
+        loadSmtp(); loadDashboard();
+      } catch (error) { showMessage(error.message); }
+    }
+
+    $("inboxForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = event.submitter; button.disabled = true;
+      try {
+        await api(API.inboxTest, {
+          method: "POST",
+          body: JSON.stringify({
+            smtp_id: $("testSmtp").value,
+            recipient: $("testEmail").value.trim()
+          })
+        });
+        showMessage("Email de test envoyé.", "success");
+      } catch (error) { showMessage(error.message); }
+      finally { button.disabled = false; }
+    });
+
+    async function loadHistory() {
+      $("historyList").innerHTML = '<div class="empty">Chargement…</div>';
+      try {
+        const data = await api(API.history);
+        const items = Array.isArray(data) ? data : (data.history || data.items || []);
+        $("historyList").innerHTML = items.length ? items.map(item => `
+          <div class="item">
+            <div class="item-title">📨 ${esc(item.subject || item.campaign_name || item.recipient || "Envoi")}</div>
+            <div class="item-meta">${esc(item.status || "—")} · ${esc(item.created_at || item.date || "")}${item.error ? "<br>Erreur : " + esc(item.error) : ""}</div>
+          </div>`).join("") : '<div class="empty">Aucun envoi dans l’historique.</div>';
+      } catch (error) {
+        $("historyList").innerHTML = `<div class="empty">Historique indisponible : ${esc(error.message)}</div>`;
+      }
+    }
+
+    async function loadSheets() {
+      $("sheetList").innerHTML = '<div class="empty">Chargement…</div>';
+      try {
+        const data = await api(API.sheets);
+        const items = Array.isArray(data) ? data : (data.sheets || data.items || []);
+        $("sheetList").innerHTML = items.length ? items.map(item => `
+          <div class="item"><div class="item-title">📋 ${esc(item.name || "Fiche")}</div>
+          <div class="item-meta">${esc(item.count ?? item.recipient_count ?? 0)} destinataire(s)</div></div>`).join("") : '<div class="empty">Aucune fiche enregistrée.</div>';
+      } catch (error) {
+        $("sheetList").innerHTML = `<div class="empty">Fiches non disponibles : ${esc(error.message)}</div>`;
+      }
+    }
+
+    $("sheetForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      try {
+        const recipients = $("sheetEmails").value.split(/\n|,|;/).map(x => x.trim()).filter(Boolean);
+        await api(API.sheets, {
+          method: "POST",
+          body: JSON.stringify({ name: $("sheetName").value.trim(), recipients })
+        });
+        showMessage("Fiche enregistrée.", "success");
+        $("sheetForm").reset(); loadSheets();
+      } catch (error) { showMessage(error.message); }
+    });
+
+    async function loadRecharge() {
+      try {
+        const data = await api(API.recharge);
+        $("rechargeContent").textContent = data.message || data.instructions || "Aucune option de recharge n’est configurée.";
+      } catch (error) {
+        $("rechargeContent").textContent = "Options de recharge indisponibles : " + error.message;
+      }
+    }
+
+    async function refreshAll() {
+      await Promise.allSettled([loadDashboard(), loadEvents()]);
+    }
+
+    refreshAll();
+    loadSmtp();
+    setInterval(refreshAll, 10000);
+    setInterval(() => {
+      const active = $("campaignsView").classList.contains("active");
+      if (active) loadCampaigns();
+    }, 10000);
+  </script>
 </body>
 </html>
