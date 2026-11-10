@@ -193,15 +193,53 @@
       Exemple : https://ton-service.onrender.com/api/miniapp
       Laisse-la vide pour tester uniquement l'interface.
     */
-    const API_URL = "";
+    const API_URL = "https://TON-API.example.com";
 
-    const tg = window.Telegram && window.Telegram.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      tg.setHeaderColor("#101827");
-      tg.setBackgroundColor("#101827");
-    }
+async function api(path, options = {}) {
+  const initData = window.Telegram.WebApp.initData;
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `tma ${initData}`,
+      ...(options.headers || {}),
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || "Erreur API");
+  }
+
+  return data;
+}
+
+async function loadDashboard() {
+  const data = await api("/api/dashboard");
+  console.log(data.stats, data.active_campaigns);
+}
+
+async function loadSmtps() {
+  const data = await api("/api/smtps");
+  console.log(data.smtps);
+}
+
+async function checkSmtp(id) {
+  return api(`/api/smtps/${id}/check`, { method: "POST" });
+}
+
+async function createCampaign(payload) {
+  return api("/api/campaigns", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+async function loadCampaignEvents(campaignId, lastEventId = 0) {
+  return api(`/api/campaigns/${campaignId}/events?after_id=${lastEventId}`);
+}
 
     const dialog = document.getElementById("formDialog");
     const form = document.getElementById("actionForm");
