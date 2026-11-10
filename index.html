@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111326">
+  <meta name="theme-color" content="#101120">
   <title>PlugMailer</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -24,13 +24,15 @@
       --red: #ff6b7c;
       --border: rgba(255,255,255,.09);
       --radius: 18px;
+      --drawer-width: min(290px, 84vw);
     }
 
     * { box-sizing: border-box; }
+    html { min-height: 100%; }
     body {
       margin: 0;
       min-height: 100vh;
-      padding: 18px 16px calc(92px + env(safe-area-inset-bottom));
+      padding: 18px 16px calc(28px + env(safe-area-inset-bottom));
       background:
         radial-gradient(ellipse at 15% 0%, rgba(155,123,255,.20), transparent 35%),
         radial-gradient(ellipse at 100% 20%, rgba(255,101,181,.12), transparent 30%),
@@ -44,26 +46,146 @@
     .app { max-width: 760px; margin: 0 auto; }
 
     .topbar {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 12px; margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
     }
-    .brand { display: flex; align-items: center; gap: 11px; }
+    .topbar-left { display:flex; align-items:center; gap:11px; min-width:0; }
+    .menu-button {
+      display:grid;
+      place-items:center;
+      flex:0 0 42px;
+      width:42px;
+      height:42px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.06);
+      cursor:pointer;
+      font-size:21px;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; min-width:0; }
     .brand-icon {
-      display: grid; place-items: center; width: 44px; height: 44px;
-      border-radius: 15px; background: linear-gradient(135deg,var(--purple),var(--pink));
-      font-size: 23px; box-shadow: 0 8px 28px rgba(155,123,255,.25);
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      flex:0 0 44px;
+      border-radius: 15px;
+      background: linear-gradient(135deg,var(--purple),var(--pink));
+      font-size: 23px;
+      box-shadow: 0 8px 28px rgba(155,123,255,.25);
     }
     .brand h1 { font-size: 19px; margin: 0; letter-spacing: .2px; }
     .brand p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
     .live-pill {
-      display: flex; align-items: center; gap: 7px; padding: 7px 10px;
-      border: 1px solid var(--border); background: rgba(255,255,255,.04);
-      border-radius: 999px; color: var(--muted); font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11px;
+      white-space:nowrap;
     }
-    .dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; }
+    .dot {
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow:0 0 10px rgba(94,226,160,.65);
+    }
+
+    .drawer-backdrop {
+      position:fixed;
+      inset:0;
+      z-index:20;
+      background:rgba(4,5,15,.67);
+      opacity:0;
+      visibility:hidden;
+      transition:opacity .2s, visibility .2s;
+    }
+    .drawer-backdrop.open { opacity:1; visibility:visible; }
+    .drawer {
+      position:fixed;
+      inset:0 auto 0 0;
+      z-index:21;
+      width:var(--drawer-width);
+      padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
+      overflow-y:auto;
+      background:linear-gradient(180deg,#1b1c34,#121326);
+      border-right:1px solid var(--border);
+      transform:translateX(-105%);
+      transition:transform .23s ease;
+      box-shadow:15px 0 45px rgba(0,0,0,.3);
+    }
+    .drawer.open { transform:translateX(0); }
+    .drawer-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:4px 3px 17px;
+      border-bottom:1px solid var(--border);
+      margin-bottom:12px;
+    }
+    .drawer-brand { display:flex; align-items:center; gap:10px; }
+    .drawer-brand .brand-icon { width:39px; height:39px; flex-basis:39px; font-size:20px; }
+    .drawer-brand strong { display:block; font-size:15px; }
+    .drawer-brand small { display:block; color:var(--muted); font-size:11px; }
+    .drawer-close {
+      width:34px;
+      height:34px;
+      border:1px solid var(--border);
+      border-radius:11px;
+      background:rgba(255,255,255,.05);
+      cursor:pointer;
+    }
+    .drawer-label {
+      margin:15px 8px 7px;
+      color:var(--muted);
+      font-size:10px;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+    .drawer-nav { display:grid; gap:5px; }
+    .drawer-nav button {
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:11px;
+      padding:11px 12px;
+      border:1px solid transparent;
+      border-radius:13px;
+      color:#e8e8f5;
+      text-align:left;
+      background:transparent;
+      cursor:pointer;
+    }
+    .drawer-nav button:hover,
+    .drawer-nav button.active {
+      color:#fff;
+      border-color:rgba(155,123,255,.3);
+      background:linear-gradient(100deg,rgba(155,123,255,.2),rgba(255,101,181,.09));
+    }
+    .drawer-emoji { width:25px; text-align:center; font-size:19px; }
+    .drawer-footer {
+      margin:18px 4px 0;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.035);
+      color:var(--muted);
+      font-size:11px;
+    }
 
     .welcome {
-      padding: 20px; border-radius: 22px; margin-bottom: 16px;
+      padding: 20px;
+      border-radius: 22px;
+      margin-bottom: 16px;
       background: linear-gradient(120deg,rgba(155,123,255,.25),rgba(255,101,181,.12)),var(--panel);
       border: 1px solid var(--border);
     }
@@ -71,24 +193,36 @@
     .welcome p { color: var(--muted); margin: 0; font-size: 13px; }
 
     .section-head {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; margin: 22px 2px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 22px 2px 11px;
     }
     .section-head h2 { font-size: 16px; margin: 0; }
     .small-button {
-      border: 1px solid var(--border); background: rgba(255,255,255,.05);
-      color: var(--muted); border-radius: 10px; padding: 7px 10px; cursor: pointer;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 7px 10px;
+      cursor: pointer;
       font-size: 12px;
     }
 
     .stats {
-      display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 10px;
     }
     .stat {
-      min-height: 105px; padding: 14px; border: 1px solid var(--border);
-      border-radius: var(--radius); background: var(--panel);
+      min-height: 105px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg,rgba(255,255,255,.035),transparent),var(--panel);
     }
-    .stat-top { display: flex; justify-content: space-between; align-items: center; }
+    .stat-top { display: flex; justify-content: space-between; align-items: center; gap:7px; }
     .stat-icon { font-size: 19px; }
     .stat-value { font-size: 25px; font-weight: 750; margin-top: 9px; }
     .stat-label { color: var(--muted); font-size: 12px; }
@@ -98,120 +232,167 @@
     .accent-red { color: var(--red); }
     .accent-green { color: var(--green); }
 
-    .nav-grid {
-      display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px;
-    }
-    .nav-card {
-      min-height: 83px; padding: 12px 8px; border: 1px solid var(--border);
-      border-radius: 16px; background: var(--panel); text-align: center;
-      cursor: pointer; transition: transform .15s, border-color .15s;
-    }
-    .nav-card:active { transform: scale(.97); }
-    .nav-card:hover { border-color: rgba(155,123,255,.55); }
-    .nav-card .emoji { display: block; font-size: 23px; margin-bottom: 5px; }
-    .nav-card span:last-child { font-size: 11px; color: #e8e8f5; }
-
     .panel {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 15px; margin-bottom: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 15px;
+      margin-bottom: 12px;
     }
     .event-list { display: grid; gap: 9px; }
     .event {
-      display: grid; grid-template-columns: 30px 1fr; gap: 9px;
-      align-items: start; padding: 10px; border-radius: 13px;
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 9px;
+      align-items: start;
+      padding: 10px;
+      border-radius: 13px;
       background: rgba(255,255,255,.035);
     }
     .event-icon { font-size: 17px; }
-    .event-title { font-size: 12px; }
+    .event-title { font-size: 12px; overflow-wrap:anywhere; }
     .event-meta { color: var(--muted); font-size: 10px; margin-top: 3px; }
     .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 18px 8px; }
-    .error {
-      display: none; padding: 12px; margin: 12px 0; border-radius: 13px;
-      color: #ffd9de; background: rgba(255,107,124,.13);
-      border: 1px solid rgba(255,107,124,.35); font-size: 12px;
+    .error, .success {
+      display: none;
+      padding: 12px;
+      margin: 12px 0;
+      border-radius: 13px;
+      font-size: 12px;
       overflow-wrap: anywhere;
     }
+    .error {
+      color: #ffd9de;
+      background: rgba(255,107,124,.13);
+      border: 1px solid rgba(255,107,124,.35);
+    }
     .success {
-      display: none; padding: 12px; margin: 12px 0; border-radius: 13px;
-      color: #d1ffeb; background: rgba(94,226,160,.12);
-      border: 1px solid rgba(94,226,160,.3); font-size: 12px;
+      color: #d1ffeb;
+      background: rgba(94,226,160,.12);
+      border: 1px solid rgba(94,226,160,.3);
     }
 
     .view { display: none; }
     .view.active { display: block; }
-    .back-row { display:flex; align-items:center; gap:10px; margin: 5px 0 15px; }
+    .back-row { display:flex; align-items:center; gap:10px; margin:5px 0 15px; }
     .back-row h2 { margin:0; font-size:20px; }
     .back {
-      width: 36px; height: 36px; border: 1px solid var(--border);
-      background: var(--panel); border-radius: 12px; cursor: pointer;
+      width:36px;
+      height:36px;
+      border:1px solid var(--border);
+      background:var(--panel);
+      border-radius:12px;
+      cursor:pointer;
     }
 
-    .form { display: grid; gap: 11px; }
+    .form { display:grid; gap:11px; }
     .field label { display:block; color:var(--muted); font-size:12px; margin:0 0 6px 2px; }
     .field input, .field select, .field textarea {
-      width:100%; color:var(--text); background:#111223; border:1px solid var(--border);
-      border-radius:12px; padding:12px; outline:none;
+      width:100%;
+      color:var(--text);
+      background:#111223;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      outline:none;
     }
     .field textarea { resize:vertical; min-height:100px; }
     .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--purple); }
     .primary {
-      width:100%; border:0; border-radius:13px; padding:13px 15px;
-      color:#fff; font-weight:700; cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      border:0;
+      border-radius:13px;
+      padding:13px 15px;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      text-decoration:none;
       background:linear-gradient(100deg,#8d6bff,#df59c4);
     }
     .primary:disabled { opacity:.55; cursor:wait; }
     .secondary {
-      border:1px solid var(--border); background:rgba(255,255,255,.05);
-      padding:11px 13px; border-radius:12px; cursor:pointer;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      padding:11px 13px;
+      border-radius:12px;
+      cursor:pointer;
     }
     .item {
-      border:1px solid var(--border); background:var(--panel-2);
-      border-radius:14px; padding:12px; margin-bottom:9px;
+      border:1px solid var(--border);
+      background:var(--panel-2);
+      border-radius:14px;
+      padding:12px;
+      margin-bottom:9px;
     }
-    .item-title { font-weight:650; font-size:13px; }
+    .item-title { font-weight:650; font-size:13px; overflow-wrap:anywhere; }
     .item-meta { color:var(--muted); font-size:11px; margin-top:4px; overflow-wrap:anywhere; }
     .item-actions { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
-    .tag { display:inline-block; padding:4px 8px; border-radius:999px; font-size:10px; background:rgba(155,123,255,.15); color:#c9baff; }
     .hint { color:var(--muted); font-size:12px; margin:0 0 12px; }
-
-    .bottom-nav {
-      position:fixed; z-index:5; left:50%; transform:translateX(-50%);
-      bottom:calc(10px + env(safe-area-inset-bottom)); width:min(728px,calc(100% - 24px));
-      display:grid; grid-template-columns:repeat(4,1fr); gap:5px; padding:7px;
-      background:rgba(25,26,48,.94); border:1px solid var(--border);
-      border-radius:18px; backdrop-filter:blur(14px);
+    .service-note {
+      padding:10px 12px;
+      color:#ffe9b0;
+      background:rgba(255,209,102,.08);
+      border:1px solid rgba(255,209,102,.2);
+      border-radius:12px;
+      font-size:11px;
+      margin-bottom:12px;
     }
-    .bottom-nav button {
-      border:0; background:transparent; color:var(--muted);
-      border-radius:12px; padding:7px 3px; font-size:10px; cursor:pointer;
-    }
-    .bottom-nav button.active { background:rgba(155,123,255,.18); color:#e7dcff; }
-    .bottom-nav span { display:block; font-size:18px; margin-bottom:2px; }
 
     @media (min-width:600px) {
       body { padding-top:26px; }
       .stats { grid-template-columns:repeat(5,minmax(0,1fr)); }
       .stat { min-height:115px; }
-      .nav-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
     }
   </style>
 </head>
 
 <body>
+  <div id="drawerBackdrop" class="drawer-backdrop"></div>
+  <aside id="drawer" class="drawer" aria-label="Menu principal">
+    <div class="drawer-head">
+      <div class="drawer-brand">
+        <div class="brand-icon">✉️</div>
+        <div><strong>PlugMailer</strong><small>Ton espace mailing</small></div>
+      </div>
+      <button id="drawerClose" class="drawer-close" aria-label="Fermer le menu">✕</button>
+    </div>
+
+    <div class="drawer-label">Navigation</div>
+    <nav class="drawer-nav">
+      <button class="active" data-view="dashboard"><span class="drawer-emoji">📊</span>Dashboard</button>
+      <button data-view="campaigns"><span class="drawer-emoji">🚀</span>Campagnes</button>
+      <button data-view="smtp"><span class="drawer-emoji">📡</span>SMTP</button>
+      <button data-view="sheets"><span class="drawer-emoji">📋</span>Fiches</button>
+      <button data-view="inbox"><span class="drawer-emoji">📥</span>Test inbox</button>
+      <button data-view="recharge"><span class="drawer-emoji">🪙</span>Recharge crypto</button>
+      <button data-view="history"><span class="drawer-emoji">🕘</span>Historique</button>
+      <button data-view="support"><span class="drawer-emoji">🆘</span>Support</button>
+      <button data-view="telegram"><span class="drawer-emoji">✈️</span>Telegram</button>
+    </nav>
+
+    <div class="drawer-footer">✨ Tableau de bord et événements actualisés automatiquement.</div>
+  </aside>
+
   <main class="app">
     <header class="topbar">
-      <div class="brand">
-        <div class="brand-icon">✉️</div>
-        <div>
-          <h1>PlugMailer</h1>
-          <p>Ton espace mailing</p>
+      <div class="topbar-left">
+        <button id="menuOpen" class="menu-button" aria-label="Ouvrir le menu">☰</button>
+        <div class="brand">
+          <div class="brand-icon">✉️</div>
+          <div>
+            <h1>PlugMailer</h1>
+            <p>Ton espace mailing</p>
+          </div>
         </div>
       </div>
       <div class="live-pill"><span class="dot"></span><span id="connectionLabel">Connexion…</span></div>
     </header>
 
-    <div id="globalError" class="error"></div>
-    <div id="globalSuccess" class="success"></div>
+    <div id="globalError" class="error" role="alert"></div>
+    <div id="globalSuccess" class="success" role="status"></div>
 
     <section id="dashboardView" class="view active">
       <div class="welcome">
@@ -221,7 +402,7 @@
 
       <div class="section-head">
         <h2>📊 Tableau de bord</h2>
-        <button class="small-button" onclick="loadDashboard()">↻ Actualiser</button>
+        <button class="small-button" id="refreshDashboard">↻ Actualiser</button>
       </div>
 
       <div class="stats">
@@ -232,24 +413,12 @@
         <div class="stat"><div class="stat-top"><span class="stat-label">SMTP configurés</span><span class="stat-icon">📡</span></div><div class="stat-value accent-green" id="statSmtp">—</div></div>
       </div>
 
-      <div class="section-head"><h2>🧩 Tes services</h2></div>
-      <div class="nav-grid">
-        <button class="nav-card" data-view="campaigns"><span class="emoji">🚀</span><span>Campagnes</span></button>
-        <button class="nav-card" data-view="smtp"><span class="emoji">📡</span><span>SMTP</span></button>
-        <button class="nav-card" data-view="sheets"><span class="emoji">📋</span><span>Fiches</span></button>
-        <button class="nav-card" data-view="inbox"><span class="emoji">📥</span><span>Test inbox</span></button>
-        <button class="nav-card" data-view="recharge"><span class="emoji">🪙</span><span>Recharge crypto</span></button>
-        <button class="nav-card" data-view="history"><span class="emoji">🕘</span><span>Historique</span></button>
-        <button class="nav-card" data-view="support"><span class="emoji">🆘</span><span>Support</span></button>
-        <button class="nav-card" data-view="telegram"><span class="emoji">✈️</span><span>Telegram</span></button>
-      </div>
-
-      <div class="section-head"><h2>⚡ Événements & logs</h2><button class="small-button" onclick="loadEvents()">↻</button></div>
+      <div class="section-head"><h2>⚡ Événements & logs</h2><button class="small-button" id="refreshEvents">↻ Actualiser</button></div>
       <div class="panel"><div id="eventList" class="event-list"><div class="empty">Chargement des événements…</div></div></div>
     </section>
 
     <section id="campaignsView" class="view">
-      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>🚀 Campagnes</h2></div>
+      <div class="back-row"><button class="back" data-back>←</button><h2>🚀 Campagnes</h2></div>
       <p class="hint">Crée une campagne puis consulte son état et sa progression.</p>
       <div class="panel">
         <form id="campaignForm" class="form">
@@ -260,31 +429,32 @@
           <button class="primary" type="submit">✨ Créer la campagne</button>
         </form>
       </div>
-      <div class="section-head"><h2>📃 Tes campagnes</h2><button class="small-button" onclick="loadCampaigns()">↻</button></div>
+      <div class="section-head"><h2>📃 Tes campagnes</h2><button class="small-button" id="refreshCampaigns">↻ Actualiser</button></div>
       <div id="campaignList"></div>
     </section>
 
     <section id="smtpView" class="view">
-      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>📡 Comptes SMTP</h2></div>
+      <div class="back-row"><button class="back" data-back>←</button><h2>📡 Comptes SMTP</h2></div>
       <p class="hint">Ajoute et vérifie tes comptes d’envoi. Ne partage jamais tes mots de passe SMTP.</p>
       <div class="panel">
         <form id="smtpForm" class="form">
           <div class="field"><label for="smtpName">Nom du compte</label><input id="smtpName" placeholder="SMTP principal"></div>
           <div class="field"><label for="smtpHost">Serveur SMTP</label><input id="smtpHost" required placeholder="mail.exemple.com"></div>
-          <div class="field"><label for="smtpPort">Port</label><input id="smtpPort" required type="number" placeholder="465"></div>
+          <div class="field"><label for="smtpPort">Port</label><input id="smtpPort" required type="number" min="1" max="65535" placeholder="465"></div>
           <div class="field"><label for="smtpEmail">Adresse / identifiant</label><input id="smtpEmail" required type="email" placeholder="toi@exemple.com"></div>
           <div class="field"><label for="smtpPassword">Mot de passe</label><input id="smtpPassword" required type="password" autocomplete="new-password"></div>
           <div class="field"><label for="smtpEncryption">Chiffrement</label><select id="smtpEncryption"><option value="ssl">SSL/TLS</option><option value="starttls">STARTTLS</option><option value="none">Aucun</option></select></div>
           <button class="primary" type="submit">➕ Ajouter et vérifier</button>
         </form>
       </div>
-      <div class="section-head"><h2>🔐 Comptes configurés</h2><button class="small-button" onclick="loadSmtp()">↻</button></div>
+      <div class="section-head"><h2>🔐 Comptes configurés</h2><button class="small-button" id="refreshSmtp">↻ Actualiser</button></div>
       <div id="smtpList"></div>
     </section>
 
     <section id="sheetsView" class="view">
-      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>📋 Fiches</h2></div>
-      <p class="hint">Gère tes fiches ou listes de destinataires. La fonctionnalité dépend des routes disponibles dans ton backend.</p>
+      <div class="back-row"><button class="back" data-back>←</button><h2>📋 Fiches</h2></div>
+      <p class="hint">Enregistre et consulte des listes de destinataires.</p>
+      <div class="service-note">Cette fonction nécessite les routes de fiches dans le backend. Si elles ne sont pas déployées, l’API affichera une erreur.</div>
       <div class="panel">
         <form id="sheetForm" class="form">
           <div class="field"><label for="sheetName">Nom de la fiche</label><input id="sheetName" required placeholder="Clients juin"></div>
@@ -296,8 +466,9 @@
     </section>
 
     <section id="inboxView" class="view">
-      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>📥 Test inbox</h2></div>
+      <div class="back-row"><button class="back" data-back>←</button><h2>📥 Test inbox</h2></div>
       <p class="hint">Envoie un email de test à ta propre adresse pour vérifier la configuration SMTP.</p>
+      <div class="service-note">Le formulaire utilise la route API configurée pour le test inbox. Elle doit exister côté backend.</div>
       <div class="panel">
         <form id="inboxForm" class="form">
           <div class="field"><label for="testSmtp">Compte SMTP</label><select id="testSmtp" required><option value="">Chargement des comptes…</option></select></div>
@@ -308,7 +479,8 @@
     </section>
 
     <section id="rechargeView" class="view">
-      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>🪙 Recharge crypto</h2></div>
+      <div class="back-row"><button class="back" data-back>←</button><h2>🪙 Recharge crypto</h2></div>
+      <div class="service-note">L’affichage des instructions ne déclenche pas de paiement. Une intégration de paiement et une configuration administrateur sont nécessaires pour traiter les recharges.</div>
       <div class="panel">
         <p class="hint">Consulte ici les moyens de recharge proposés par l’administrateur.</p>
         <div id="rechargeContent" class="empty">Chargement des options de recharge…</div>
@@ -316,48 +488,40 @@
     </section>
 
     <section id="historyView" class="view">
-      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>🕘 Historique</h2></div>
-      <div class="section-head"><h2>Envois récents</h2><button class="small-button" onclick="loadHistory()">↻</button></div>
+      <div class="back-row"><button class="back" data-back>←</button><h2>🕘 Historique</h2></div>
+      <div class="section-head"><h2>Envois récents</h2><button class="small-button" id="refreshHistory">↻ Actualiser</button></div>
       <div id="historyList"></div>
     </section>
 
     <section id="supportView" class="view">
-      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>🆘 Support</h2></div>
+      <div class="back-row"><button class="back" data-back>←</button><h2>🆘 Support</h2></div>
       <div class="panel">
         <p>Besoin d’aide avec la configuration ou une campagne ? Contacte le support.</p>
-        <a id="supportLink" class="primary" style="display:block;text-align:center;text-decoration:none" href="#" target="_blank" rel="noopener">💬 Contacter le support</a>
+        <a id="supportLink" class="primary" href="#" target="_blank" rel="noopener">💬 Contacter le support</a>
       </div>
     </section>
 
     <section id="telegramView" class="view">
-      <div class="back-row"><button class="back" onclick="showView('dashboard')">←</button><h2>✈️ Telegram</h2></div>
+      <div class="back-row"><button class="back" data-back>←</button><h2>✈️ Telegram</h2></div>
       <div class="panel">
-        <p>Ouvre le bot Telegram pour accéder aux commandes et notifications.</p>
-        <a id="telegramLink" class="primary" style="display:block;text-align:center;text-decoration:none" href="#" target="_blank" rel="noopener">🤖 Ouvrir le bot</a>
+        <p>Ouvre le bot Telegram pour accéder à ses commandes et notifications.</p>
+        <a id="telegramLink" class="primary" href="#" target="_blank" rel="noopener">🤖 Ouvrir le bot</a>
       </div>
     </section>
   </main>
 
-  <nav class="bottom-nav">
-    <button class="active" data-view="dashboard"><span>📊</span>Accueil</button>
-    <button data-view="campaigns"><span>🚀</span>Campagnes</button>
-    <button data-view="smtp"><span>📡</span>SMTP</button>
-    <button data-view="history"><span>🕘</span>Historique</button>
-  </nav>
-
   <script>
     /*
-      Configuration à remplacer avant publication.
-      API_URL doit être l’URL publique du service Render qui exécute FastAPI.
-      N’ajoute ni /docs ni /api à la fin, sauf si ton backend l’exige.
+      Remplace API_URL par l’URL publique de ton service FastAPI Render.
+      Ne mets pas de token, mot de passe ni autre secret dans ce fichier.
     */
     const API_URL = "https://plug-mailer-bot-uipj.onrender.com";
     const SUPPORT_URL = "https://t.me/no_flex75";
-    const TELEGRAM_BOT_URL = "https://t.me/Plugmailer_bot";
+    const TELEGRAM_BOT_URL = "https://t.me/Plugmailerbot";
 
     /*
-      Vérifie les routes ci-dessous dans main.py.
-      Elles doivent correspondre exactement aux endpoints FastAPI déployés.
+      Ces routes doivent correspondre exactement à celles du backend.
+      Les routes fiches, test inbox et recharge peuvent nécessiter une implémentation backend.
     */
     const API = {
       dashboard: "/api/dashboard",
@@ -379,12 +543,12 @@
 
     const initData = tg?.initData || "";
     const user = tg?.initDataUnsafe?.user;
-    document.getElementById("userName").textContent =
-      user?.first_name ? `${user.first_name} 👋` : "👋";
-    document.getElementById("supportLink").href = SUPPORT_URL;
-    document.getElementById("telegramLink").href = TELEGRAM_BOT_URL;
-
     const $ = id => document.getElementById(id);
+
+    $("userName").textContent = user?.first_name ? `${user.first_name} 👋` : "👋";
+    $("supportLink").href = SUPPORT_URL;
+    $("telegramLink").href = TELEGRAM_BOT_URL;
+
     const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
       "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
     }[char]));
@@ -395,44 +559,90 @@
       other.style.display = "none";
       box.textContent = message;
       box.style.display = "block";
-      setTimeout(() => box.style.display = "none", 6000);
+      clearTimeout(box._hideTimer);
+      box._hideTimer = setTimeout(() => { box.style.display = "none"; }, 6000);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
+
+    function openDrawer() {
+      $("drawer").classList.add("open");
+      $("drawerBackdrop").classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeDrawer() {
+      $("drawer").classList.remove("open");
+      $("drawerBackdrop").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    $("menuOpen").addEventListener("click", openDrawer);
+    $("drawerClose").addEventListener("click", closeDrawer);
+    $("drawerBackdrop").addEventListener("click", closeDrawer);
 
     function showView(name) {
       document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
       const target = $(name + "View");
       if (target) target.classList.add("active");
 
-      document.querySelectorAll("[data-view]").forEach(button =>
-        button.classList.toggle("active", button.dataset.view === name)
-      );
+      document.querySelectorAll(".drawer-nav [data-view]").forEach(button => {
+        button.classList.toggle("active", button.dataset.view === name);
+      });
 
-      if (name === "dashboard") { loadDashboard(); loadEvents(); }
+      closeDrawer();
+
+      if (name === "dashboard") {
+        loadDashboard();
+        loadEvents();
+      }
       if (name === "campaigns") loadCampaigns();
-      if (name === "smtp") loadSmtp();
+      if (name === "smtp" || name === "inbox") loadSmtp();
       if (name === "history") loadHistory();
       if (name === "sheets") loadSheets();
       if (name === "recharge") loadRecharge();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    document.querySelectorAll("[data-view]").forEach(button =>
+    document.querySelectorAll(".drawer-nav [data-view]").forEach(button =>
       button.addEventListener("click", () => showView(button.dataset.view))
     );
+    document.querySelectorAll("[data-back]").forEach(button =>
+      button.addEventListener("click", () => showView("dashboard"))
+    );
+
+    $("refreshDashboard").addEventListener("click", () => {
+      loadDashboard();
+      loadEvents();
+    });
+    $("refreshEvents").addEventListener("click", loadEvents);
+    $("refreshCampaigns").addEventListener("click", loadCampaigns);
+    $("refreshSmtp").addEventListener("click", loadSmtp);
+    $("refreshHistory").addEventListener("click", loadHistory);
 
     async function api(path, options = {}) {
       if (!API_URL || API_URL.includes("REMPLACE-PAR")) {
         throw new Error("Configure API_URL avec l’URL publique de ton backend FastAPI.");
       }
+
       const headers = { ...(options.headers || {}) };
       if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
       if (initData) headers["tma"] = initData;
 
-      const response = await fetch(API_URL.replace(/\/$/, "") + path, {
-        ...options, headers
-      });
+      let response;
+      try {
+        response = await fetch(API_URL.replace(/\/$/, "") + path, { ...options, headers });
+      } catch {
+        throw new Error("Impossible de joindre le backend. Vérifie son URL, son état sur Render et la configuration CORS.");
+      }
+
       const raw = await response.text();
       let data = {};
-      try { data = raw ? JSON.parse(raw) : {}; } catch { data = { detail: raw }; }
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = { detail: raw };
+      }
 
       if (!response.ok) {
         throw new Error(data.detail || data.message || `Erreur API ${response.status}`);
@@ -441,8 +651,22 @@
     }
 
     function pick(obj, keys, fallback = 0) {
-      for (const key of keys) if (obj?.[key] !== undefined && obj[key] !== null) return obj[key];
+      for (const key of keys) {
+        if (obj?.[key] !== undefined && obj[key] !== null) return obj[key];
+      }
       return fallback;
+    }
+
+    function getItems(data, keys) {
+      if (Array.isArray(data)) return data;
+      for (const key of keys) if (Array.isArray(data?.[key])) return data[key];
+      return [];
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString("fr-FR");
     }
 
     async function loadDashboard() {
@@ -456,25 +680,31 @@
         $("statSmtp").textContent = pick(data, ["smtp_count", "smtp_configured", "total_smtp"]);
       } catch (error) {
         $("connectionLabel").textContent = "Hors ligne";
-        ["statCampaigns","statSent","statPending","statFailed","statSmtp"].forEach(id => $(id).textContent = "—");
-        $("eventList").innerHTML = `<div class="empty">Impossible de charger le tableau de bord.<br>${esc(error.message)}</div>`;
+        ["statCampaigns", "statSent", "statPending", "statFailed", "statSmtp"]
+          .forEach(id => $(id).textContent = "—");
+        $("eventList").innerHTML =
+          `<div class="empty">Impossible de charger le tableau de bord.<br>${esc(error.message)}</div>`;
       }
     }
 
     async function loadEvents() {
       try {
         const data = await api(API.events);
-        const events = Array.isArray(data) ? data : (data.events || data.items || []);
+        const events = getItems(data, ["events", "items"]);
         if (!events.length) {
           $("eventList").innerHTML = '<div class="empty">Aucun événement récent.</div>';
           return;
         }
-        $("eventList").innerHTML = events.slice(0, 15).map(event => `
+
+        $("eventList").innerHTML = events.slice(0, 20).map(event => `
           <div class="event">
             <div class="event-icon">⚡</div>
-            <div><div class="event-title">${esc(event.message || event.description || event.event || "Événement")}</div>
-            <div class="event-meta">${esc(event.created_at || event.timestamp || event.date || "")}</div></div>
-          </div>`).join("");
+            <div>
+              <div class="event-title">${esc(event.message || event.description || event.event || "Événement")}</div>
+              <div class="event-meta">${esc(formatDate(event.created_at || event.timestamp || event.date))}</div>
+            </div>
+          </div>
+        `).join("");
       } catch (error) {
         $("eventList").innerHTML = `<div class="empty">Logs indisponibles : ${esc(error.message)}</div>`;
       }
@@ -484,13 +714,24 @@
       $("campaignList").innerHTML = '<div class="empty">Chargement…</div>';
       try {
         const data = await api(API.campaigns);
-        const items = Array.isArray(data) ? data : (data.campaigns || data.items || []);
+        const items = getItems(data, ["campaigns", "items"]);
+
         $("campaignList").innerHTML = items.length ? items.map(item => `
           <div class="item">
             <div class="item-title">🚀 ${esc(item.name || item.subject || "Campagne")}</div>
-            <div class="item-meta">État : ${esc(item.status || "—")} · Envoyés : ${esc(item.sent ?? 0)} · En attente : ${esc(item.pending ?? 0)} · Échecs : ${esc(item.failed ?? 0)}</div>
-            ${item.id ? `<div class="item-actions"><button class="secondary" onclick="cancelCampaign('${esc(item.id)}')">⏹ Annuler</button></div>` : ""}
-          </div>`).join("") : '<div class="empty">Aucune campagne pour le moment.</div>';
+            <div class="item-meta">
+              État : ${esc(item.status || "—")}
+              · Envoyés : ${esc(item.sent ?? item.sent_count ?? 0)}
+              · En attente : ${esc(item.pending ?? item.pending_count ?? 0)}
+              · Échecs : ${esc(item.failed ?? item.failed_count ?? 0)}
+            </div>
+            ${item.id ? `<div class="item-actions"><button class="secondary" data-cancel-id="${esc(item.id)}">⏹ Annuler</button></div>` : ""}
+          </div>
+        `).join("") : '<div class="empty">Aucune campagne pour le moment.</div>';
+
+        $("campaignList").querySelectorAll("[data-cancel-id]").forEach(button =>
+          button.addEventListener("click", () => cancelCampaign(button.dataset.cancelId))
+        );
       } catch (error) {
         $("campaignList").innerHTML = `<div class="empty">Impossible de charger les campagnes : ${esc(error.message)}</div>`;
       }
@@ -500,9 +741,14 @@
       event.preventDefault();
       const button = event.submitter;
       button.disabled = true;
+
       try {
-        const recipients = $("recipients").value.split(/\n|,|;/).map(x => x.trim()).filter(Boolean);
-        const result = await api(API.campaigns, {
+        const recipients = $("recipients").value
+          .split(/\n|,|;/)
+          .map(value => value.trim())
+          .filter(Boolean);
+
+        await api(API.campaigns, {
           method: "POST",
           body: JSON.stringify({
             name: $("campaignName").value.trim(),
@@ -511,38 +757,62 @@
             recipients
           })
         });
+
         showMessage("Campagne créée.", "success");
         $("campaignForm").reset();
-        loadCampaigns(); loadDashboard(); loadEvents();
-      } catch (error) { showMessage(error.message); }
-      finally { button.disabled = false; }
+        await Promise.allSettled([loadCampaigns(), loadDashboard(), loadEvents()]);
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        button.disabled = false;
+      }
     });
 
     async function cancelCampaign(id) {
       try {
         await api(API.campaignCancel(id), { method: "POST" });
         showMessage("Demande d’annulation envoyée.", "success");
-        loadCampaigns(); loadDashboard(); loadEvents();
-      } catch (error) { showMessage(error.message); }
+        await Promise.allSettled([loadCampaigns(), loadDashboard(), loadEvents()]);
+      } catch (error) {
+        showMessage(error.message);
+      }
     }
 
     async function loadSmtp() {
       $("smtpList").innerHTML = '<div class="empty">Chargement…</div>';
+
       try {
         const data = await api(API.smtp);
-        const items = Array.isArray(data) ? data : (data.smtp_accounts || data.accounts || data.items || []);
+        const items = getItems(data, ["smtp_accounts", "accounts", "items"]);
+
         $("smtpList").innerHTML = items.length ? items.map(item => `
           <div class="item">
             <div class="item-title">📡 ${esc(item.name || item.email || item.username || "Compte SMTP")}</div>
-            <div class="item-meta">${esc(item.host || "")}${item.port ? ":" + esc(item.port) : ""} · ${esc(item.status || (item.active ? "Actif" : "Configuré"))}</div>
-            <div class="item-actions">
-              ${item.id ? `<button class="secondary" onclick="checkSmtp('${esc(item.id)}')">🧪 Vérifier</button><button class="secondary" onclick="deleteSmtp('${esc(item.id)}')">🗑 Supprimer</button>` : ""}
+            <div class="item-meta">
+              ${esc(item.host || "")}${item.port ? ":" + esc(item.port) : ""}
+              · ${esc(item.status || (item.active ? "Actif" : "Configuré"))}
+              ${item.created_at ? " · Ajouté le " + esc(formatDate(item.created_at)) : ""}
             </div>
-          </div>`).join("") : '<div class="empty">Aucun compte SMTP configuré.</div>';
+            <div class="item-actions">
+              ${item.id ? `<button class="secondary" data-check-id="${esc(item.id)}">🧪 Vérifier</button>
+              <button class="secondary" data-delete-id="${esc(item.id)}">🗑 Supprimer</button>` : ""}
+            </div>
+          </div>
+        `).join("") : '<div class="empty">Aucun compte SMTP configuré.</div>';
+
+        $("smtpList").querySelectorAll("[data-check-id]").forEach(button =>
+          button.addEventListener("click", () => checkSmtp(button.dataset.checkId))
+        );
+        $("smtpList").querySelectorAll("[data-delete-id]").forEach(button =>
+          button.addEventListener("click", () => deleteSmtp(button.dataset.deleteId))
+        );
 
         const select = $("testSmtp");
         select.innerHTML = '<option value="">Choisir un compte SMTP</option>' +
-          items.map(item => `<option value="${esc(item.id)}">${esc(item.email || item.username || item.name || item.host)}</option>`).join("");
+          items.map(item => {
+            const label = item.email || item.username || item.name || item.host || "Compte SMTP";
+            return `<option value="${esc(item.id ?? "")}">${esc(label)}</option>`;
+          }).join("");
       } catch (error) {
         $("smtpList").innerHTML = `<div class="empty">Impossible de charger les SMTP : ${esc(error.message)}</div>`;
         $("testSmtp").innerHTML = '<option value="">Liste indisponible</option>';
@@ -551,24 +821,32 @@
 
     $("smtpForm").addEventListener("submit", async event => {
       event.preventDefault();
-      const button = event.submitter; button.disabled = true;
+      const button = event.submitter;
+      button.disabled = true;
+
       try {
+        const email = $("smtpEmail").value.trim();
         await api(API.smtp, {
           method: "POST",
           body: JSON.stringify({
             name: $("smtpName").value.trim(),
             host: $("smtpHost").value.trim(),
             port: Number($("smtpPort").value),
-            username: $("smtpEmail").value.trim(),
-            email: $("smtpEmail").value.trim(),
+            username: email,
+            email,
             password: $("smtpPassword").value,
             encryption: $("smtpEncryption").value
           })
         });
-        showMessage("Compte SMTP ajouté. Le backend a accepté la requête.", "success");
-        $("smtpForm").reset(); loadSmtp(); loadDashboard();
-      } catch (error) { showMessage(error.message); }
-      finally { button.disabled = false; }
+
+        showMessage("Compte SMTP ajouté.", "success");
+        $("smtpForm").reset();
+        await Promise.allSettled([loadSmtp(), loadDashboard()]);
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        button.disabled = false;
+      }
     });
 
     async function checkSmtp(id) {
@@ -576,21 +854,28 @@
         const result = await api(API.smtpCheck(id), { method: "POST" });
         showMessage(result.message || "Vérification terminée.", "success");
         loadSmtp();
-      } catch (error) { showMessage(error.message); }
+      } catch (error) {
+        showMessage(error.message);
+      }
     }
 
     async function deleteSmtp(id) {
       if (!confirm("Supprimer ce compte SMTP ?")) return;
+
       try {
         await api(API.smtpDelete(id), { method: "DELETE" });
         showMessage("Compte SMTP supprimé.", "success");
-        loadSmtp(); loadDashboard();
-      } catch (error) { showMessage(error.message); }
+        await Promise.allSettled([loadSmtp(), loadDashboard()]);
+      } catch (error) {
+        showMessage(error.message);
+      }
     }
 
     $("inboxForm").addEventListener("submit", async event => {
       event.preventDefault();
-      const button = event.submitter; button.disabled = true;
+      const button = event.submitter;
+      button.disabled = true;
+
       try {
         await api(API.inboxTest, {
           method: "POST",
@@ -600,20 +885,29 @@
           })
         });
         showMessage("Email de test envoyé.", "success");
-      } catch (error) { showMessage(error.message); }
-      finally { button.disabled = false; }
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        button.disabled = false;
+      }
     });
 
     async function loadHistory() {
       $("historyList").innerHTML = '<div class="empty">Chargement…</div>';
+
       try {
         const data = await api(API.history);
-        const items = Array.isArray(data) ? data : (data.history || data.items || []);
+        const items = getItems(data, ["history", "items"]);
+
         $("historyList").innerHTML = items.length ? items.map(item => `
           <div class="item">
             <div class="item-title">📨 ${esc(item.subject || item.campaign_name || item.recipient || "Envoi")}</div>
-            <div class="item-meta">${esc(item.status || "—")} · ${esc(item.created_at || item.date || "")}${item.error ? "<br>Erreur : " + esc(item.error) : ""}</div>
-          </div>`).join("") : '<div class="empty">Aucun envoi dans l’historique.</div>';
+            <div class="item-meta">
+              ${esc(item.status || "—")} · ${esc(formatDate(item.created_at || item.date))}
+              ${item.error ? "<br>Erreur : " + esc(item.error) : ""}
+            </div>
+          </div>
+        `).join("") : '<div class="empty">Aucun envoi dans l’historique.</div>';
       } catch (error) {
         $("historyList").innerHTML = `<div class="empty">Historique indisponible : ${esc(error.message)}</div>`;
       }
@@ -621,12 +915,17 @@
 
     async function loadSheets() {
       $("sheetList").innerHTML = '<div class="empty">Chargement…</div>';
+
       try {
         const data = await api(API.sheets);
-        const items = Array.isArray(data) ? data : (data.sheets || data.items || []);
+        const items = getItems(data, ["sheets", "items"]);
+
         $("sheetList").innerHTML = items.length ? items.map(item => `
-          <div class="item"><div class="item-title">📋 ${esc(item.name || "Fiche")}</div>
-          <div class="item-meta">${esc(item.count ?? item.recipient_count ?? 0)} destinataire(s)</div></div>`).join("") : '<div class="empty">Aucune fiche enregistrée.</div>';
+          <div class="item">
+            <div class="item-title">📋 ${esc(item.name || "Fiche")}</div>
+            <div class="item-meta">${esc(item.count ?? item.recipient_count ?? 0)} destinataire(s)</div>
+          </div>
+        `).join("") : '<div class="empty">Aucune fiche enregistrée.</div>';
       } catch (error) {
         $("sheetList").innerHTML = `<div class="empty">Fiches non disponibles : ${esc(error.message)}</div>`;
       }
@@ -634,37 +933,60 @@
 
     $("sheetForm").addEventListener("submit", async event => {
       event.preventDefault();
+      const button = event.submitter;
+      button.disabled = true;
+
       try {
-        const recipients = $("sheetEmails").value.split(/\n|,|;/).map(x => x.trim()).filter(Boolean);
+        const recipients = $("sheetEmails").value
+          .split(/\n|,|;/)
+          .map(value => value.trim())
+          .filter(Boolean);
+
         await api(API.sheets, {
           method: "POST",
-          body: JSON.stringify({ name: $("sheetName").value.trim(), recipients })
+          body: JSON.stringify({
+            name: $("sheetName").value.trim(),
+            recipients
+          })
         });
+
         showMessage("Fiche enregistrée.", "success");
-        $("sheetForm").reset(); loadSheets();
-      } catch (error) { showMessage(error.message); }
+        $("sheetForm").reset();
+        loadSheets();
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        button.disabled = false;
+      }
     });
 
     async function loadRecharge() {
+      $("rechargeContent").textContent = "Chargement des options de recharge…";
+
       try {
         const data = await api(API.recharge);
-        $("rechargeContent").textContent = data.message || data.instructions || "Aucune option de recharge n’est configurée.";
+        $("rechargeContent").textContent =
+          data.message || data.instructions || "Aucune option de recharge n’est configurée.";
       } catch (error) {
         $("rechargeContent").textContent = "Options de recharge indisponibles : " + error.message;
       }
     }
 
-    async function refreshAll() {
+    async function refreshDashboard() {
       await Promise.allSettled([loadDashboard(), loadEvents()]);
     }
 
-    refreshAll();
-    loadSmtp();
-    setInterval(refreshAll, 10000);
+    // Accueil Dashboard par défaut, puis actualisation périodique.
+    refreshDashboard();
+    setInterval(refreshDashboard, 10000);
+
+    // Actualise les vues consultées sans envoyer de requêtes inutiles aux autres écrans.
     setInterval(() => {
-      const active = $("campaignsView").classList.contains("active");
-      if (active) loadCampaigns();
-    }, 10000);
+      if ($("campaignsView").classList.contains("active")) loadCampaigns();
+      if ($("smtpView").classList.contains("active")) loadSmtp();
+      if ($("historyView").classList.contains("active")) loadHistory();
+      if ($("dashboardView").classList.contains("active")) loadEvents();
+    }, 15000);
   </script>
 </body>
 </html>
